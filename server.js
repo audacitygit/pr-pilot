@@ -44,17 +44,18 @@ app.post("/webhook", async (req, res) => {
         );
 
         const files = filesResponse.data;
+        console.log({ files })
         console.log(`Fetched ${files.length} files from PR.`);
 
         if (files.length > 0) {
             // Send PR files to AI for analysis
-            const aiReview = await sendCodeToAI(files);
+            // const aiReview = await sendCodeToAI(files);
 
             // Post inline comments based on AI review
-            await postAIInlineComments(repoOwner, repoName, prNumber, commitId, files, aiReview);
+            // await postAIInlineComments(repoOwner, repoName, prNumber, commitId, files, aiReview);
 
             // Post final summary comment
-            await postFinalComment(repoOwner, repoName, prNumber, aiReview);
+            // await postFinalComment(repoOwner, repoName, prNumber, aiReview);
         }
 
         res.status(200).send("AI Review Processed");
