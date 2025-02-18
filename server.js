@@ -23,11 +23,12 @@ app.get("/health", (req, res) => {
 app.post("/webhook", async (req, res) => {
     const { action, pull_request, repository } = req.body;
     console.log({ action })
-    if (action === "closed") {
+    if (action === "closed" || !action) {
         return res.status(400).send("Not a PR open event");
     }
 
-    console.log(`Received PR Open Event for ${pull_request.title}`);
+    console.log(`Received PR Open Event for ${pull_request?.title}`);
+    console.log(`pull request here`, pull_request)
     const repoOwner = repository.owner.login;
     const repoName = repository.name;
     const prNumber = pull_request.number;
@@ -43,17 +44,18 @@ app.post("/webhook", async (req, res) => {
         );
 
         const files = filesResponse.data;
+        console.log({ files })
         console.log(`Fetched ${files.length} files from PR.`);
 
         if (files.length > 0) {
             // Send PR files to AI for analysis
-            const aiReview = await sendCodeToAI(files);
+            // const aiReview = await sendCodeToAI(files);
 
             // Post inline comments based on AI review
-            await postAIInlineComments(repoOwner, repoName, prNumber, commitId, files, aiReview);
+            // await postAIInlineComments(repoOwner, repoName, prNumber, commitId, files, aiReview);
 
             // Post final summary comment
-            await postFinalComment(repoOwner, repoName, prNumber, aiReview);
+            // await postFinalComment(repoOwner, repoName, prNumber, aiReview);
         }
 
         res.status(200).send("AI Review Processed");
@@ -218,7 +220,7 @@ async function postFinalComment(owner, repo, prNumber, aiReview) {
         const summaryResponse = await openai.chat.completions.create({
             model: "gpt-4o-mini",
             messages: [
-                { role: "system", content: "Summarize the key issues found in the PR as a bullet-point list." },
+                { role: "system", content: "Summarize the key issues found in the PR." },
                 { role: "user", content: `Summarize the following code review findings as a concise bullet-point list:\n\n${aiReview}` },
             ],
             max_tokens: 100,
